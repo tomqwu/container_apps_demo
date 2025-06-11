@@ -1,0 +1,10 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: appconfig
+spec:
+  type: configuration.local.file
+  version: v1
+  metadata:
+    - name: configurationFile
+      value: ./appconfig.json

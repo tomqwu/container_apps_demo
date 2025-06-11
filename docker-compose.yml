@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "YourStrong!Passw0rd", "-Q", "SELECT 1"]
+      interval: 10s
+      retries: 10
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  app1:
+    build:
+      context: ./app1
+    ports:
+      - "3001:5000"
+    environment:
+      - DAPR_HTTP_PORT=3501
+      - SQL_CONN=Server=sqlserver;Database=orders;User Id=sa;Password=YourStrong!Passw0rd;
+    depends_on:
+      - sqlserver
+      - redis
+
+  app2:
+    build:
+      context: ./app2
+    ports:
+      - "3002:3000"
+    environment:
+      - DAPR_HTTP_PORT=3501
+    depends_on:
+      - redis

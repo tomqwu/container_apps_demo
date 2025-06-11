@@ -1,0 +1,9 @@
+CREATE DATABASE orders;
+GO
+USE orders;
+GO
+CREATE TABLE Orders (
+  Id NVARCHAR(50) PRIMARY KEY,
+  Data NVARCHAR(MAX)
+);
+GO
