@@ -18,10 +18,7 @@
         "ms-azuretools.vscode-dapr",
         "ms-vscode.azurecli",
         "ms-python.python",
-        "ms-python.vscode-pylance",
-        "ms-toolsai.jupyter",
-        "eamodio.gitlens",
-        "streetsidesoftware.code-spell-checker"
+        "ms-python.vscode-pylance"
       ]
     }
   },
