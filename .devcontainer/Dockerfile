@@ -1,8 +1,8 @@
-FROM mcr.microsoft.com/devcontainers/javascript-node:20
+FROM mcr.microsoft.com/devcontainers/python:3.11
 
-# Install build tools and Python dependencies
+# Install build tools and ODBC support
 RUN apt-get update && \
-    apt-get install -y build-essential curl apt-transport-https lsb-release ca-certificates gnupg python3 python3-pip python3-dev unixodbc-dev && \
+    apt-get install -y build-essential curl apt-transport-https lsb-release ca-certificates gnupg unixodbc-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Azure CLI

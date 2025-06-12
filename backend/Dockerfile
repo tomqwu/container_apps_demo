@@ -4,9 +4,12 @@ WORKDIR /app
 
 COPY app.py .
 
+# install Python dependencies
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
 RUN apt-get update && \
-    apt-get install -y gcc g++ unixodbc-dev && \
-    pip install fastapi uvicorn httpx pyodbc
+    apt-get install -y gcc g++ unixodbc-dev
 
 EXPOSE 4000
 
