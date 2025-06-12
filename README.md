@@ -1,93 +1,109 @@
-# Container Apps Demo (Dapr, FastAPI, SQL Server, Redis)
+# Container Apps Demo
 
-## Architecture
+This project demonstrates a simple containerized application where a frontend service calls a backend service. The application uses FastAPI and Docker Compose for orchestration. Optionally, Dapr can be used for service-to-service communication.
 
-```mermaid
-flowchart TD
-    subgraph Frontend
-        FE[FastAPI /orders]
-    end
-    subgraph Dapr Sidecar FE
-        DaprFE[Dapr HTTP API]
-    end
-    subgraph Backend
-        BE[FastAPI /createOrder]
-    end
-    subgraph Dapr Sidecar BE
-        DaprBE[Dapr HTTP API]
-    end
-    subgraph Services
-        SQL[(SQL Server)]
-        Redis[(Redis)]
-    end
-    FE -- HTTP POST /orders --> DaprFE
-    DaprFE -- Service Invocation --> DaprBE
-    DaprBE -- HTTP POST /createOrder --> BE
-    BE -- pyodbc --> SQL
-    BE -- Dapr State API --> DaprBE
-    DaprBE -- Redis State Store --> Redis
+## Prerequisites
+
+- Python 3.9 or higher
+- Docker and Docker Compose
+- Dapr CLI (optional, for Dapr testing)
+
+## Setup Instructions
+
+### 1. Install Dependencies
+
+Install Python dependencies:
+
+```bash
+pip3 install -r backend/requirements.txt
+pip3 install -r frontend/requirements.txt
 ```
 
-## Local Development
+### 2. Run the Application with Docker Compose
 
-### Prerequisites
+Start the services using Docker Compose:
 
-- Docker & Docker Compose  
-- Dapr CLI  
-- Python 3.11  
-- ODBC Driver 17 for SQL Server (backend)  
-- SQL Server & Redis (see docker-compose.yml)  
+```bash
+docker-compose up --build
+```
 
-### Setup
+Access the frontend at `http://localhost:3000/call-backend`.
 
-1. **Start SQL Server and Redis:**
-   ```sh
-   docker-compose up -d
-   ```
-2. **Initialize SQL Table:**
-   ```sh
-   sqlcmd -S localhost,1433 -U sa -P YourStrong!Passw0rd -i sql/init.sql
-   ```
-3. **Install Python dependencies:**
-   ```sh
-   pip install fastapi uvicorn httpx pyodbc
-   ```
-4. **Run Backend with Dapr:**
-   ```sh
-   dapr run --app-id backend --app-port 4000 --app-protocol http \
-     --dapr-http-port 3501 --components-path ./components \
-     -- uvicorn backend.app:app --host 0.0.0.0 --port 4000
-   ```
-5. **Run Frontend with Dapr:**
-   ```sh
-   dapr run --app-id frontend --app-port 3000 --app-protocol http \
-     --dapr-http-port 3500 --components-path ./components \
-     -- uvicorn frontend.app:app --host 0.0.0.0 --port 3000
-   ```
+### 3. Run Unit Tests
 
-### Testing
+#### Backend Tests
 
-1. **Create an Order**
-   ```sh
-   curl -X POST http://localhost:3000/orders \
-     -H "Content-Type: application/json" \
-     -d '{"item":"test"}'
-   ```
-2. **Verify SQL Server**
-   ```sh
-   sqlcmd -S localhost,1433 -U sa -P YourStrong!Passw0rd \
-     -Q "SELECT * FROM orders.dbo.Orders"
-   ```
-3. **Verify Redis**
-   ```sh
-   redis-cli GET order-<id>
-   ```
-   Replace `<id>` with the order ID returned above.
+Run unit tests for the backend:
 
----
+```bash
+pytest backend/test_backend.py
+```
+
+#### Frontend Tests
+
+Run unit tests for the frontend:
+
+```bash
+pytest frontend/test_frontend.py
+```
+
+### 4. Test Dapr Integration (Optional)
+
+#### Start Dapr Sidecar
+
+Start the Dapr sidecar for the backend service:
+
+```bash
+dapr run --app-id backend --app-port 4000 -- uvicorn app:app --host 0.0.0.0 --port 4000
+```
+
+#### Test Dapr Communication
+
+Use `curl` to test Dapr communication:
+
+```bash
+curl -X GET http://localhost:3500/v1.0/invoke/backend/method/api/v1/example
+```
+
+### 5. Debugging
+
+#### View Logs
+
+View logs for Docker Compose services:
+
+```bash
+docker-compose logs
+```
+
+View logs for Dapr:
+
+```bash
+dapr logs --app-id backend
+```
+
+#### Check Dapr Status
+
+Verify Dapr status:
+
+```bash
+dapr status
+```
+
+### 6. Cleanup
+
+Stop all services:
+
+```bash
+docker-compose down
+```
+
+Stop Dapr:
+
+```bash
+dapr stop --app-id backend
+```
 
 ## Notes
 
-- Frontend & backend are implemented in Python with FastAPI.  
-- Dapr handles service invocation & state management.  
-- SQL Server stores orders; Redis caches via Dapr state store.
+- Ensure the `BACKEND_URL` environment variable is correctly set in the frontend service.
+- If using Dapr, ensure the Dapr CLI is installed and initialized (`dapr init`).
